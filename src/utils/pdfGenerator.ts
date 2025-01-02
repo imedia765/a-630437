@@ -1,11 +1,12 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import JSZip from 'jszip';
 import { Database } from '@/integrations/supabase/types';
 
 type Member = Database['public']['Tables']['members']['Row'];
 
 export const generateMembersPDF = (members: Member[], title: string = 'Members Report') => {
-  const doc = new jsPDF('landscape'); // Switch to landscape for more space
+  const doc = new jsPDF('landscape');
   console.log('Generating PDF for', members.length, 'members');
   
   // Add title and date
@@ -140,6 +141,40 @@ export const generateMembersPDF = (members: Member[], title: string = 'Members R
     filename = `members-report-${date}.pdf`;
   }
   
-  console.log('Saving PDF as:', filename);
-  doc.save(filename);
+  return doc;
+};
+
+export const generateCollectorZip = async (members: Member[]) => {
+  const zip = new JSZip();
+  const date = new Date().toISOString().split('T')[0];
+
+  // Group members by collector
+  const membersByCollector = members.reduce((acc, member) => {
+    const collector = member.collector || 'Unassigned';
+    if (!acc[collector]) {
+      acc[collector] = [];
+    }
+    acc[collector].push(member);
+    return acc;
+  }, {} as Record<string, Member[]>);
+
+  // Generate PDF for each collector
+  Object.entries(membersByCollector).forEach(([collector, collectorMembers]) => {
+    const doc = generateMembersPDF(collectorMembers, `Members List - Collector: ${collector}`);
+    const pdfContent = doc.output('arraybuffer');
+    const filename = `collector-${collector.toLowerCase().replace(/\s+/g, '-')}-${date}.pdf`;
+    zip.file(filename, pdfContent);
+  });
+
+  // Generate and download the zip file
+  const content = await zip.generateAsync({ type: 'blob' });
+  const zipFilename = `collectors-reports-${date}.zip`;
+  
+  // Create a download link and trigger the download
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(content);
+  link.download = zipFilename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };

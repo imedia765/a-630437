@@ -9,7 +9,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { generateMembersPDF } from '@/utils/pdfGenerator';
+import { generateMembersPDF, generateCollectorZip } from '@/utils/pdfGenerator';
 import { useToast } from "@/components/ui/use-toast";
 import TotalCount from "@/components/TotalCount";
 import CollectorMembers from "@/components/CollectorMembers";
@@ -91,15 +91,15 @@ const CollectorsList = () => {
     }
     
     try {
-      generateMembersPDF(allMembers, 'Complete Members List');
+      await generateCollectorZip(allMembers);
       toast({
         title: "Success",
-        description: "PDF report generated successfully",
+        description: "ZIP file with all collector reports generated successfully",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to generate PDF report",
+        description: "Failed to generate ZIP file",
         variant: "destructive",
       });
     }
@@ -124,7 +124,8 @@ const CollectorsList = () => {
         return;
       }
 
-      generateMembersPDF(collectorMembers, `Members List - Collector: ${collectorName}`);
+      const doc = generateMembersPDF(collectorMembers, `Members List - Collector: ${collectorName}`);
+      doc.save();
       toast({
         title: "Success",
         description: "PDF report generated successfully",
