@@ -128,9 +128,18 @@ export const generateMembersPDF = (members: Member[], title: string = 'Members R
     startY = finalY + 15;
   });
 
-  // Save the PDF with a formatted date in the filename
+  // Generate filename based on the title
   const date = new Date().toISOString().split('T')[0];
-  const filename = `members-report-${date}.pdf`;
+  let filename = '';
+  
+  // Check if it's a collector-specific report
+  if (title.includes('Collector:')) {
+    const collectorName = title.split('Collector:')[1].trim();
+    filename = `collector-${collectorName.toLowerCase().replace(/\s+/g, '-')}-${date}.pdf`;
+  } else {
+    filename = `members-report-${date}.pdf`;
+  }
+  
   console.log('Saving PDF as:', filename);
   doc.save(filename);
 };
