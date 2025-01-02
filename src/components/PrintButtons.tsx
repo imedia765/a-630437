@@ -42,6 +42,7 @@ const PrintButtons = ({
 
       await generateCollectorZip(allMembers, (current, total, collector) => {
         setProgress({ current, total, collector });
+        console.log(`Processing collector ${collector} (${current}/${total})`);
       });
 
       toast({
@@ -63,15 +64,33 @@ const PrintButtons = ({
 
   const handlePrintCollector = async (name: string) => {
     try {
-      const { data: collectorMembers, error } = await supabase
-        .from('members')
-        .select('*')
-        .eq('collector', name)
-        .order('member_number', { ascending: true });
-      
-      if (error) throw error;
+      console.log(`Fetching members for collector: ${name}`);
+      let allCollectorMembers: Member[] = [];
+      let hasMore = true;
+      let page = 0;
+      const pageSize = 1000;
 
-      if (!collectorMembers?.length) {
+      while (hasMore) {
+        const { data: collectorMembers, error } = await supabase
+          .from('members')
+          .select('*')
+          .eq('collector', name)
+          .order('member_number', { ascending: true })
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+        
+        if (error) throw error;
+
+        if (collectorMembers && collectorMembers.length > 0) {
+          allCollectorMembers = [...allCollectorMembers, ...collectorMembers];
+          page++;
+          hasMore = collectorMembers.length === pageSize;
+          console.log(`Fetched ${collectorMembers.length} members for ${name}, total: ${allCollectorMembers.length}`);
+        } else {
+          hasMore = false;
+        }
+      }
+
+      if (!allCollectorMembers.length) {
         toast({
           title: "Error",
           description: "No members found for this collector",
@@ -80,7 +99,8 @@ const PrintButtons = ({
         return;
       }
 
-      const doc = generateMembersPDF(collectorMembers, `Members List - Collector: ${name}`);
+      console.log(`Generating PDF for ${name} with ${allCollectorMembers.length} members`);
+      const doc = generateMembersPDF(allCollectorMembers, `Members List - Collector: ${name}`);
       doc.save();
       toast({
         title: "Success",

@@ -30,7 +30,6 @@ export const generateMembersPDF = (members: Member[], title: string = 'Members R
   console.log('Grouped members by collector:', Object.keys(membersByCollector).length, 'collectors');
 
   let startY = 40;
-  let currentPage = 1;
 
   // Define table columns with optimized widths for landscape mode
   const columns = [
@@ -130,18 +129,6 @@ export const generateMembersPDF = (members: Member[], title: string = 'Members R
     startY = finalY + 15;
   });
 
-  // Generate filename based on the title
-  const date = new Date().toISOString().split('T')[0];
-  let filename = '';
-  
-  // Check if it's a collector-specific report
-  if (title.includes('Collector:')) {
-    const collectorName = title.split('Collector:')[1].trim();
-    filename = `collector-${collectorName.toLowerCase().replace(/\s+/g, '-')}-${date}.pdf`;
-  } else {
-    filename = `members-report-${date}.pdf`;
-  }
-  
   return doc;
 };
 
@@ -164,6 +151,7 @@ export const generateCollectorZip = async (
 
   const collectors = Object.entries(membersByCollector);
   const totalCollectors = collectors.length;
+  console.log(`Starting ZIP generation for ${totalCollectors} collectors`);
 
   // Generate PDF for each collector
   for (let i = 0; i < collectors.length; i++) {
@@ -177,10 +165,11 @@ export const generateCollectorZip = async (
     const filename = `collector-${collector.toLowerCase().replace(/\s+/g, '-')}-${date}.pdf`;
     zip.file(filename, pdfContent);
 
-    // Add a small delay to prevent memory issues
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // Add a small delay between processing each collector to prevent memory issues
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
 
+  console.log('Finished processing all collectors, generating ZIP file');
   // Generate and download the zip file
   const content = await zip.generateAsync({ type: 'blob' });
   const zipFilename = `collectors-reports-${date}.zip`;
