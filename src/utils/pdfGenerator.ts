@@ -4,6 +4,7 @@ import JSZip from 'jszip';
 import { Database } from '@/integrations/supabase/types';
 
 type Member = Database['public']['Tables']['members']['Row'];
+type ProgressCallback = (current: number, total: number, collector: string) => void;
 
 export const generateMembersPDF = (members: Member[], title: string = 'Members Report') => {
   const doc = new jsPDF('landscape');
@@ -144,7 +145,10 @@ export const generateMembersPDF = (members: Member[], title: string = 'Members R
   return doc;
 };
 
-export const generateCollectorZip = async (members: Member[]) => {
+export const generateCollectorZip = async (
+  members: Member[], 
+  onProgress?: ProgressCallback
+) => {
   const zip = new JSZip();
   const date = new Date().toISOString().split('T')[0];
 
@@ -158,13 +162,24 @@ export const generateCollectorZip = async (members: Member[]) => {
     return acc;
   }, {} as Record<string, Member[]>);
 
+  const collectors = Object.entries(membersByCollector);
+  const totalCollectors = collectors.length;
+
   // Generate PDF for each collector
-  Object.entries(membersByCollector).forEach(([collector, collectorMembers]) => {
+  for (let i = 0; i < collectors.length; i++) {
+    const [collector, collectorMembers] = collectors[i];
+    
+    console.log(`Processing collector ${collector} with ${collectorMembers.length} members`);
+    onProgress?.(i + 1, totalCollectors, collector);
+
     const doc = generateMembersPDF(collectorMembers, `Members List - Collector: ${collector}`);
     const pdfContent = doc.output('arraybuffer');
     const filename = `collector-${collector.toLowerCase().replace(/\s+/g, '-')}-${date}.pdf`;
     zip.file(filename, pdfContent);
-  });
+
+    // Add a small delay to prevent memory issues
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
 
   // Generate and download the zip file
   const content = await zip.generateAsync({ type: 'blob' });

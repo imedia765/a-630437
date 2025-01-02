@@ -1,25 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from '@/integrations/supabase/types';
-import { UserCheck, Printer, Users } from 'lucide-react';
+import { UserCheck, Users } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import { generateMembersPDF, generateCollectorZip } from '@/utils/pdfGenerator';
-import { useToast } from "@/components/ui/use-toast";
 import TotalCount from "@/components/TotalCount";
 import CollectorMembers from "@/components/CollectorMembers";
+import PrintButtons from "@/components/PrintButtons";
 
 type MemberCollector = Database['public']['Tables']['members_collectors']['Row'];
 type Member = Database['public']['Tables']['members']['Row'];
 
 const CollectorsList = () => {
-  const { toast } = useToast();
-
   // Fetch all members for the master print functionality
   const { data: allMembers } = useQuery({
     queryKey: ['all_members'],
@@ -64,80 +60,18 @@ const CollectorsList = () => {
           .select('*', { count: 'exact', head: true })
           .eq('collector', collector.name);
         
-        console.log(`Collector ${collector.name} has ${count} members`);
-        
         return {
           ...collector,
           memberCount: count || 0
         };
       }) || []);
 
-      console.log('Collectors with counts:', collectorsWithCounts);
       return collectorsWithCounts;
     },
   });
 
   // Calculate total members across all collectors
   const totalMembers = collectors?.reduce((total, collector) => total + (collector.memberCount || 0), 0) || 0;
-
-  const handlePrintAll = async () => {
-    if (!allMembers) {
-      toast({
-        title: "Error",
-        description: "No members data available to print",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      await generateCollectorZip(allMembers);
-      toast({
-        title: "Success",
-        description: "ZIP file with all collector reports generated successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to generate ZIP file",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handlePrintCollector = async (collectorName: string) => {
-    try {
-      const { data: collectorMembers, error } = await supabase
-        .from('members')
-        .select('*')
-        .eq('collector', collectorName)
-        .order('member_number', { ascending: true });
-
-      if (error) throw error;
-
-      if (!collectorMembers?.length) {
-        toast({
-          title: "Error",
-          description: "No members found for this collector",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const doc = generateMembersPDF(collectorMembers, `Members List - Collector: ${collectorName}`);
-      doc.save();
-      toast({
-        title: "Success",
-        description: "PDF report generated successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to generate PDF report",
-        variant: "destructive",
-      });
-    }
-  };
 
   if (collectorsLoading) return <div className="text-center py-4">Loading collectors...</div>;
   if (collectorsError) return <div className="text-center py-4 text-red-500">Error loading collectors: {collectorsError.message}</div>;
@@ -160,13 +94,7 @@ const CollectorsList = () => {
         ]}
       />
       <div className="flex justify-end mb-4">
-        <Button 
-          onClick={handlePrintAll}
-          className="flex items-center gap-2 bg-dashboard-accent1 hover:bg-dashboard-accent1/80"
-        >
-          <Printer className="w-4 h-4" />
-          Print All Members
-        </Button>
+        <PrintButtons allMembers={allMembers} />
       </div>
 
       <Accordion type="single" collapsible className="space-y-4">
@@ -195,16 +123,7 @@ const CollectorsList = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePrintCollector(collector.name || '');
-                    }}
-                    className="flex items-center gap-2 bg-dashboard-accent2 hover:bg-dashboard-accent2/80"
-                  >
-                    <Printer className="w-4 h-4" />
-                    Print Members
-                  </Button>
+                  <PrintButtons collectorName={collector.name || ''} />
                   <div className={`px-3 py-1 rounded-full ${
                     collector.active 
                       ? 'bg-green-500/20 text-green-400' 
