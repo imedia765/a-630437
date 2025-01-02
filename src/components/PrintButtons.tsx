@@ -5,11 +5,12 @@ import { useToast } from "@/components/ui/use-toast";
 import { generateMembersPDF, generateCollectorZip } from '@/utils/pdfGenerator';
 import PDFGenerationProgress from "./PDFGenerationProgress";
 import { Database } from '@/integrations/supabase/types';
+import { supabase } from "@/integrations/supabase/client";
 
 type Member = Database['public']['Tables']['members']['Row'];
 
 interface PrintButtonsProps {
-  allMembers: Member[] | undefined;
+  allMembers?: Member[] | undefined;
   collectorName?: string;
   onGenerateStart?: () => void;
   onGenerateComplete?: () => void;
@@ -67,7 +68,7 @@ const PrintButtons = ({
         .select('*')
         .eq('collector', name)
         .order('member_number', { ascending: true });
-
+      
       if (error) throw error;
 
       if (!collectorMembers?.length) {
