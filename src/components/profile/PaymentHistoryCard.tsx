@@ -8,8 +8,8 @@ const PaymentHistoryCard = () => {
     yearlyPayment: {
       amount: 40,
       status: 'pending',
-      dueDate: '2024-01-29', // Updated to January 29th (28 days to pay)
-      year: '2024'
+      dueDate: '2025-01-29', // Updated to January 29th 2025
+      year: '2025'
     },
     emergencyCollections: [
       {
@@ -28,7 +28,7 @@ const PaymentHistoryCard = () => {
 
   return (
     <Card className="bg-dashboard-card border-white/10 shadow-lg hover:border-dashboard-accent1/50 transition-all duration-300 mt-6">
-      <ProfileHeader />
+      <ProfileHeader title="Member Finance" />
       <CardContent className="pt-6">
         <div className="space-y-6">
           {/* Yearly Payment Section */}
