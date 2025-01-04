@@ -19,8 +19,9 @@ export const useLoginForm = () => {
     setError(null);
 
     try {
-      // First clear any existing session
+      // First clear any existing session and local storage
       await supabase.auth.signOut();
+      localStorage.removeItem('supabase.auth.token');
       
       const maxRetries = 3;
       let currentTry = 0;
@@ -28,11 +29,14 @@ export const useLoginForm = () => {
 
       while (currentTry < maxRetries) {
         try {
+          console.log(`Login attempt ${currentTry + 1} for member ${formattedMemberNumber}`);
+          
           // First verify member exists
           const member = await findMemberByNumber(formattedMemberNumber);
           
           // Then attempt login/signup
           const authData = await loginOrSignupMember(formattedMemberNumber);
+          console.log('Auth successful:', authData.user?.id);
 
           // If we have a user and they're new, update their member record
           if (authData.user && member && !member.auth_user_id) {
@@ -53,6 +57,7 @@ export const useLoginForm = () => {
             throw new Error('Failed to establish session');
           }
 
+          console.log('Session established successfully');
           await queryClient.invalidateQueries();
           
           toast({

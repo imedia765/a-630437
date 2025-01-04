@@ -13,9 +13,11 @@ const Login = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing session on mount
-    const checkSession = async () => {
+    const initializeAuth = async () => {
       try {
+        // Clear any stale session data
+        localStorage.removeItem('supabase.auth.token');
+        
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -31,6 +33,8 @@ const Login = () => {
         }
       } catch (error) {
         console.error('Session check failed:', error);
+        // Clear any invalid session data
+        await supabase.auth.signOut();
         toast({
           title: "Authentication Error",
           description: "Please try logging in again.",
@@ -39,7 +43,7 @@ const Login = () => {
       }
     };
 
-    checkSession();
+    initializeAuth();
 
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -49,8 +53,6 @@ const Login = () => {
         navigate('/');
       } else if (event === 'SIGNED_OUT') {
         navigate('/login');
-      } else if (event === 'TOKEN_REFRESHED') {
-        console.log('Token refreshed successfully');
       }
     });
 
