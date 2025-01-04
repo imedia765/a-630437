@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarIcon, CreditCard, History, AlertOctagon, PoundSterling } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import ProfileHeader from "./ProfileHeader";
 
 const PaymentHistoryCard = () => {
@@ -8,7 +9,8 @@ const PaymentHistoryCard = () => {
     yearlyPayment: {
       amount: 40,
       status: 'pending',
-      dueDate: '2025-01-29', // Updated to January 29th 2025
+      dueDate: '2025-01-01', // Updated to January 1st 2025
+      paymentWindow: '2025-01-29', // 28-day window
       year: '2025'
     },
     emergencyCollections: [
@@ -22,8 +24,13 @@ const PaymentHistoryCard = () => {
 
   // Calculate if payment is overdue
   const isOverdue = () => {
-    const dueDate = new Date(paymentHistory.yearlyPayment.dueDate);
+    const dueDate = new Date(paymentHistory.yearlyPayment.paymentWindow);
     return new Date() > dueDate && paymentHistory.yearlyPayment.status === 'pending';
+  };
+
+  const handleMakePayment = () => {
+    // Payment logic will be implemented later
+    console.log('Processing payment...');
   };
 
   return (
@@ -56,12 +63,18 @@ const PaymentHistoryCard = () => {
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-dashboard-text text-sm">
                   <CalendarIcon className="w-4 h-4 text-dashboard-muted" />
-                  <span>Due by: January 29, {paymentHistory.yearlyPayment.year}</span>
+                  <span>Due by: January 1, {paymentHistory.yearlyPayment.year}</span>
                 </div>
                 <div className="text-dashboard-muted text-xs">
                   Payment window: January 1 - January 29 ({paymentHistory.yearlyPayment.year})
                 </div>
               </div>
+              <Button 
+                onClick={handleMakePayment}
+                className="w-full mt-2 bg-dashboard-accent2 hover:bg-dashboard-accent2/80 text-white"
+              >
+                Make Payment
+              </Button>
             </div>
           </div>
 
