@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import MemberProfileCard from './MemberProfileCard';
+import PaymentHistoryCard from './profile/PaymentHistoryCard';
 import { Button } from "@/components/ui/button";
 
 interface DashboardViewProps {
@@ -14,7 +15,6 @@ const DashboardView = ({ onLogout }: DashboardViewProps) => {
 
   const handleLogout = async () => {
     try {
-      // Invalidate all queries before logout
       await queryClient.invalidateQueries();
       await supabase.auth.signOut();
       onLogout();
@@ -35,7 +35,6 @@ const DashboardView = ({ onLogout }: DashboardViewProps) => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) throw new Error('No user logged in');
 
-      // First get the member number from the user metadata
       const { data: { user } } = await supabase.auth.getUser();
       const memberNumber = user?.user_metadata?.member_number;
       
@@ -50,7 +49,6 @@ const DashboardView = ({ onLogout }: DashboardViewProps) => {
         .from('members')
         .select('*');
       
-      // Use the same OR condition approach as MembersList for more flexible matching
       query = query.or(`member_number.eq.${memberNumber},auth_user_id.eq.${session.user.id}`);
       
       const { data, error } = await query.maybeSingle();
@@ -97,6 +95,7 @@ const DashboardView = ({ onLogout }: DashboardViewProps) => {
       
       <div className="grid gap-6">
         <MemberProfileCard memberProfile={memberProfile} />
+        <PaymentHistoryCard />
       </div>
     </>
   );
