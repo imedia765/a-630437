@@ -8,7 +8,8 @@ const PaymentHistoryCard = () => {
     yearlyPayment: {
       amount: 40,
       status: 'pending',
-      dueDate: '2024-12-31'
+      dueDate: '2024-01-29', // Updated to January 29th (28 days to pay)
+      year: '2024'
     },
     emergencyCollections: [
       {
@@ -19,14 +20,23 @@ const PaymentHistoryCard = () => {
     ]
   };
 
+  // Calculate if payment is overdue
+  const isOverdue = () => {
+    const dueDate = new Date(paymentHistory.yearlyPayment.dueDate);
+    return new Date() > dueDate && paymentHistory.yearlyPayment.status === 'pending';
+  };
+
   return (
     <Card className="bg-dashboard-card border-white/10 shadow-lg hover:border-dashboard-accent1/50 transition-all duration-300 mt-6">
-      <ProfileHeader title="Payment History" />
+      <ProfileHeader />
       <CardContent className="pt-6">
         <div className="space-y-6">
           {/* Yearly Payment Section */}
           <div className="space-y-2">
-            <p className="text-dashboard-muted text-sm">Annual Membership Fee</p>
+            <div className="flex items-center justify-between">
+              <p className="text-dashboard-muted text-sm">Annual Membership Fee ({paymentHistory.yearlyPayment.year})</p>
+              <span className="text-dashboard-muted text-xs">Due every January</span>
+            </div>
             <div className="bg-white/5 p-4 rounded-lg space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-dashboard-accent2">
@@ -34,16 +44,23 @@ const PaymentHistoryCard = () => {
                   <span className="text-lg font-medium">40.00</span>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  paymentHistory.yearlyPayment.status === 'paid' 
-                    ? 'bg-dashboard-accent3/20 text-dashboard-accent3'
-                    : 'bg-dashboard-warning/20 text-dashboard-warning'
+                  isOverdue() 
+                    ? 'bg-dashboard-warning/20 text-dashboard-warning'
+                    : paymentHistory.yearlyPayment.status === 'paid' 
+                      ? 'bg-dashboard-accent3/20 text-dashboard-accent3'
+                      : 'bg-dashboard-warning/20 text-dashboard-warning'
                 }`}>
-                  {paymentHistory.yearlyPayment.status === 'paid' ? 'Paid' : 'Due'}
+                  {isOverdue() ? 'Overdue' : paymentHistory.yearlyPayment.status === 'paid' ? 'Paid' : 'Due'}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-dashboard-text text-sm">
-                <CalendarIcon className="w-4 h-4 text-dashboard-muted" />
-                <span>Due by: December 31, 2024</span>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-dashboard-text text-sm">
+                  <CalendarIcon className="w-4 h-4 text-dashboard-muted" />
+                  <span>Due by: January 29, {paymentHistory.yearlyPayment.year}</span>
+                </div>
+                <div className="text-dashboard-muted text-xs">
+                  Payment window: January 1 - January 29 ({paymentHistory.yearlyPayment.year})
+                </div>
               </div>
             </div>
           </div>
