@@ -65,8 +65,9 @@ const PaymentHistoryCard = () => {
                   <CalendarIcon className="w-4 h-4 text-dashboard-muted" />
                   <span>Due by: January 1, {paymentHistory.yearlyPayment.year}</span>
                 </div>
-                <div className="text-dashboard-muted text-xs">
-                  Payment window: January 1 - January 29 ({paymentHistory.yearlyPayment.year})
+                <div className="flex items-center gap-2 text-dashboard-warning text-xs">
+                  <AlertOctagon className="w-4 h-4" />
+                  <span>Payment window: January 1 - January 29 ({paymentHistory.yearlyPayment.year})</span>
                 </div>
               </div>
               <Button 
