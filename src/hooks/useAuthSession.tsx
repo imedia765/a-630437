@@ -43,6 +43,7 @@ export const useAuthSession = () => {
 
   useEffect(() => {
     let mounted = true;
+    let authSubscription: { unsubscribe: () => void } | null = null;
 
     const initializeSession = async () => {
       try {
@@ -73,52 +74,60 @@ export const useAuthSession = () => {
 
     initializeSession();
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
-      if (!mounted) {
-        console.log('Component unmounted, ignoring auth state change');
-        return;
-      }
-      
-      console.log('Auth state changed:', _event, currentSession?.user?.id);
-      setLoading(true);
-      
-      if (_event === 'SIGNED_OUT') {
-        console.log('User signed out, clearing session and queries');
-        setSession(null);
+    const setupAuthSubscription = () => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
+        if (!mounted) {
+          console.log('Component unmounted, ignoring auth state change');
+          return;
+        }
         
-        try {
-          await Promise.allSettled([
-            queryClient.resetQueries(),
-            localStorage.clear(),
-            supabase.auth.signOut()
-          ]);
-        } catch (error) {
-          console.error('Error during sign out cleanup:', error);
-        } finally {
-          setLoading(false);
+        console.log('Auth state changed:', _event, currentSession?.user?.id);
+        setLoading(true);
+        
+        if (_event === 'SIGNED_OUT') {
+          console.log('User signed out, clearing session and queries');
+          setSession(null);
+          
+          try {
+            await Promise.allSettled([
+              queryClient.resetQueries(),
+              localStorage.clear(),
+              supabase.auth.signOut()
+            ]);
+          } catch (error) {
+            console.error('Error during sign out cleanup:', error);
+          } finally {
+            setLoading(false);
+          }
+          return;
         }
-        return;
-      }
 
-      if (_event === 'SIGNED_IN' || _event === 'TOKEN_REFRESHED') {
-        console.log('Setting session after', _event);
-        setSession(currentSession);
-        if (_event === 'SIGNED_IN') {
-          queryClient.resetQueries();
+        if (_event === 'SIGNED_IN' || _event === 'TOKEN_REFRESHED') {
+          console.log('Setting session after', _event);
+          setSession(currentSession);
+          if (_event === 'SIGNED_IN') {
+            queryClient.resetQueries();
+          }
+        } else {
+          setSession(currentSession);
         }
-      } else {
-        setSession(currentSession);
-      }
-      
-      setLoading(false);
-    });
+        
+        setLoading(false);
+      });
+
+      authSubscription = subscription;
+    };
+
+    setupAuthSubscription();
 
     return () => {
       mounted = false;
-      if (subscription) {
-        subscription.unsubscribe();
+      if (authSubscription) {
+        try {
+          authSubscription.unsubscribe();
+        } catch (error) {
+          console.error('Error unsubscribing from auth changes:', error);
+        }
       }
     };
   }, [queryClient, toast]);
