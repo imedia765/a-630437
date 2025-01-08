@@ -6,13 +6,13 @@ import { useToast } from "@/hooks/use-toast";
 
 export const useAuthSession = () => {
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true); // Start with loading true
+  const [loading, setLoading] = useState(true);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const handleAuthError = async (error: any) => {
     console.error('Auth error:', error);
-    setLoading(true); // Ensure loading state is set during error handling
+    setLoading(true);
     
     const errorMessage = typeof error === 'string' ? error : error.message || error.error_description;
     
@@ -25,7 +25,6 @@ export const useAuthSession = () => {
       setSession(null);
       
       try {
-        // Clear all auth-related data
         await queryClient.resetQueries();
         localStorage.clear();
         await supabase.auth.signOut();
@@ -37,7 +36,7 @@ export const useAuthSession = () => {
           description: "Please sign in again",
           variant: "destructive",
         });
-        setLoading(false); // Ensure loading is reset after all cleanup
+        setLoading(false);
       }
     }
   };
@@ -45,7 +44,6 @@ export const useAuthSession = () => {
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session
     const initializeSession = async () => {
       try {
         setLoading(true);
@@ -56,14 +54,10 @@ export const useAuthSession = () => {
         if (mounted && existingSession?.user) {
           console.log('Found existing session for user:', existingSession.user.id);
           
-          // Verify session is still valid with a test request
           const { error: userError } = await supabase.auth.getUser();
           if (userError) throw userError;
           
           setSession(existingSession);
-          setLoading(false); // Set loading false after successful session check
-        } else {
-          setLoading(false); // Set loading false if no session found
         }
       } catch (error: any) {
         console.error('Session check error:', error);
@@ -71,42 +65,40 @@ export const useAuthSession = () => {
           await handleAuthError(error);
         }
       } finally {
-        if (mounted && !session) {
-          setLoading(false); // Final fallback to ensure loading is reset
+        if (mounted) {
+          setLoading(false);
         }
       }
     };
 
     initializeSession();
 
-    // Listen for auth changes
-    let subscription: { unsubscribe: () => void } | null = null;
-    
-    const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
       if (!mounted) {
         console.log('Component unmounted, ignoring auth state change');
         return;
       }
       
-      subscription = authSubscription;
-      if (!mounted) return;
-      
       console.log('Auth state changed:', _event, currentSession?.user?.id);
-      setLoading(true); // Set loading true on auth state change
+      setLoading(true);
       
       if (_event === 'SIGNED_OUT') {
         console.log('User signed out, clearing session and queries');
-        setLoading(true);
         setSession(null);
         
-        // Perform all cleanup operations in parallel
-        await Promise.allSettled([
-          queryClient.resetQueries(),
-          localStorage.clear(),
-          supabase.auth.signOut()
-        ]);
-        
-        setLoading(false);
+        try {
+          await Promise.allSettled([
+            queryClient.resetQueries(),
+            localStorage.clear(),
+            supabase.auth.signOut()
+          ]);
+        } catch (error) {
+          console.error('Error during sign out cleanup:', error);
+        } finally {
+          setLoading(false);
+        }
         return;
       }
 
@@ -116,17 +108,18 @@ export const useAuthSession = () => {
         if (_event === 'SIGNED_IN') {
           queryClient.resetQueries();
         }
-        setLoading(false);
-        return;
+      } else {
+        setSession(currentSession);
       }
-
-      setSession(currentSession);
+      
       setLoading(false);
     });
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, [queryClient, toast]);
 
