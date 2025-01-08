@@ -6,10 +6,14 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from "lucide-react";
+import TermsDialog from './TermsDialog';
+import PrivacyDialog from './PrivacyDialog';
 
 const LoginForm = () => {
   const [memberNumber, setMemberNumber] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -218,25 +222,30 @@ const LoginForm = () => {
 
         <div className="text-center text-sm text-dashboard-text mt-4">
           By logging in, you agree to our{' '}
-          <a 
-            href="https://www.pwaburtontrent.org/terms" 
-            target="_blank" 
-            rel="noopener noreferrer" 
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              setShowTerms(true);
+            }}
             className="text-dashboard-accent1 hover:underline"
           >
             Terms of Service
-          </a>{' '}
+          </button>{' '}
           and{' '}
-          <a 
-            href="https://www.pwaburtontrent.org/privacy" 
-            target="_blank" 
-            rel="noopener noreferrer" 
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              setShowPrivacy(true);
+            }}
             className="text-dashboard-accent1 hover:underline"
           >
             Privacy Policy
-          </a>
+          </button>
         </div>
       </form>
+
+      <TermsDialog open={showTerms} onOpenChange={setShowTerms} />
+      <PrivacyDialog open={showPrivacy} onOpenChange={setShowPrivacy} />
     </div>
   );
 };
