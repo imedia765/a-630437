@@ -17,7 +17,7 @@ const LegalLinks = () => {
           }}
           className="text-dashboard-accent1 hover:underline"
         >
-          Terms of Service
+          PWA Collector Member Responsibilities
         </button>{' '}
         and{' '}
         <button
@@ -27,7 +27,7 @@ const LegalLinks = () => {
           }}
           className="text-dashboard-accent1 hover:underline"
         >
-          Privacy Policy
+          Pakistan Welfare Association Membership Terms
         </button>
       </div>
 
