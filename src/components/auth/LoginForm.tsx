@@ -215,6 +215,27 @@ const LoginForm = () => {
             'Login'
           )}
         </Button>
+
+        <div className="text-center text-sm text-dashboard-text mt-4">
+          By logging in, you agree to our{' '}
+          <a 
+            href="https://www.pwaburtontrent.org/terms" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-dashboard-accent1 hover:underline"
+          >
+            Terms of Service
+          </a>{' '}
+          and{' '}
+          <a 
+            href="https://www.pwaburtontrent.org/privacy" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-dashboard-accent1 hover:underline"
+          >
+            Privacy Policy
+          </a>
+        </div>
       </form>
     </div>
   );
