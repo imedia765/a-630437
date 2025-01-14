@@ -221,8 +221,8 @@ Please return this form to your bank.`;
             </DialogHeader>
             <Alert className="mb-4 bg-dashboard-accent1/10 border-dashboard-accent1/20">
               <AlertCircle className="h-4 w-4 text-dashboard-accent1" />
-              <AlertDescription className="text-dashboard-text">
-                Please note: Standing orders can only be set up for next year's payment. This cannot be used for your current payment which must be paid directly to your collector.
+              <AlertDescription className="text-yellow-400 text-lg">
+                Please note: Standing orders can only be set up for next year's payment. This cannot be used for your current payment which must be paid directly to your collector. You can also set up a standing order through your banking app or online banking portal.
               </AlertDescription>
             </Alert>
             <div className="grid gap-4 py-4">
