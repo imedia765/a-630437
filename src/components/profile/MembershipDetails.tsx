@@ -268,7 +268,7 @@ Please return this form to your bank.`;
               </div>
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={handlePrint} className="bg-dashboard-card hover:bg-dashboard-cardHover text-dashboard-text border-dashboard-cardBorder">
+              <Button variant="outline" onClick={handlePrint} className="bg-blue-500 hover:bg-blue-600 text-white">
                 <Printer className="w-4 h-4 mr-2" />
                 Print
               </Button>
