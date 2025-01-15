@@ -209,7 +209,7 @@ Please return this form to your bank.`;
           <DialogTrigger asChild>
             <Button
               variant="outline"
-              className="w-full mt-4 bg-dashboard-accent2/10 hover:bg-dashboard-accent2/20 text-dashboard-accent2 border-dashboard-accent2/20"
+              className="w-full mt-4 bg-dashboard-softBlue hover:bg-blue-400 text-blue-700 border border-blue-300"
             >
               <FileText className="w-4 h-4 mr-2" />
               Generate Standing Order Form
