@@ -2,8 +2,31 @@ import LoginForm from '@/components/auth/LoginForm';
 import CommitteeUpdate from '@/components/auth/CommitteeUpdate';
 import MembershipExpectations from '@/components/auth/MembershipExpectations';
 import ImportantInformation from '@/components/auth/ImportantInformation';
+import { useAuthSession } from '@/hooks/useAuthSession';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 
 const Login = () => {
+  const { session, loading } = useAuthSession();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log('Login page - session state:', { session, loading });
+    if (session && !loading) {
+      console.log('Login page - redirecting to dashboard');
+      navigate('/', { replace: true });
+    }
+  }, [session, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-dashboard-dark">
+        <Loader2 className="w-8 h-8 animate-spin text-dashboard-accent1" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-dashboard-dark">
       {/* Header Banner */}
