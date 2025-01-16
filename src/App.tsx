@@ -5,6 +5,8 @@ import ProtectedRoutes from "@/components/routing/ProtectedRoutes";
 import { useEnhancedRoleAccess } from "@/hooks/useEnhancedRoleAccess";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,8 +21,22 @@ function AppContent() {
   const { session, loading: sessionLoading } = useAuthSession();
   const { isLoading: rolesLoading, error: rolesError } = useEnhancedRoleAccess();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  console.log('App render state:', { sessionLoading, rolesLoading, hasSession: !!session });
+  console.log('App render state:', { 
+    sessionLoading, 
+    rolesLoading, 
+    hasSession: !!session,
+    currentPath: location.pathname 
+  });
+
+  useEffect(() => {
+    if (!sessionLoading && !session && location.pathname !== '/login') {
+      console.log('No session detected, redirecting to login');
+      navigate('/login', { replace: true });
+    }
+  }, [session, sessionLoading, navigate, location.pathname]);
 
   if (rolesError) {
     console.error('Role loading error:', rolesError);
@@ -31,7 +47,8 @@ function AppContent() {
     });
   }
 
-  if (sessionLoading || rolesLoading) {
+  // Show loading state only if we're loading session or roles (when there's a session)
+  if (sessionLoading || (session && rolesLoading)) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-dashboard-dark">
         <Loader2 className="w-8 h-8 animate-spin text-dashboard-accent1" />
