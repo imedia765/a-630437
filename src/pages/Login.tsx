@@ -11,16 +11,17 @@ const Login = () => {
   const { session, loading } = useAuthSession();
   const navigate = useNavigate();
 
+  console.log('Login page render state:', { session, loading });
+
   useEffect(() => {
-    console.log('Login page - session state:', { session, loading });
+    // Only redirect if we have a session and we're not loading
     if (session && !loading) {
-      console.log('Login page - redirecting to dashboard');
+      console.log('Login page - redirecting to dashboard due to existing session');
       navigate('/', { replace: true });
-      return;
     }
   }, [session, loading, navigate]);
 
-  // Only show loading state when explicitly loading
+  // If we're loading, show loading spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-dashboard-dark">
@@ -29,7 +30,7 @@ const Login = () => {
     );
   }
 
-  // If not loading and no session, show login page
+  // If we're not loading and don't have a session, show login page
   if (!loading && !session) {
     return (
       <div className="min-h-screen bg-dashboard-dark">

@@ -32,6 +32,8 @@ function AppContent() {
   });
 
   useEffect(() => {
+    // Only redirect to login if we're not already on the login page
+    // and we're sure there's no session (not loading)
     if (!sessionLoading && !session && location.pathname !== '/login') {
       console.log('No session detected, redirecting to login');
       navigate('/login', { replace: true });
@@ -47,8 +49,9 @@ function AppContent() {
     });
   }
 
-  // Show loading state only if we're loading session or roles (when there's a session)
-  if (sessionLoading || (session && rolesLoading)) {
+  // Show loading state only if we're loading session
+  // Don't show loading for roles if we're on the login page
+  if (sessionLoading || (session && rolesLoading && location.pathname !== '/login')) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-dashboard-dark">
         <Loader2 className="w-8 h-8 animate-spin text-dashboard-accent1" />
