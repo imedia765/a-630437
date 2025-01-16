@@ -7,11 +7,15 @@ import { useToast } from "@/hooks/use-toast";
 type UserRole = Database['public']['Enums']['app_role'];
 
 const fetchUserRolesFromSupabase = async () => {
+  console.log('Starting role fetch from Supabase...');
   const { data: { session } } = await supabase.auth.getSession();
+  
   if (!session?.user) {
-    throw new Error('No authenticated user');
+    console.log('No authenticated user found during role fetch');
+    return [];
   }
 
+  console.log('Fetching roles for user:', session.user.id);
   const { data, error } = await supabase
     .from('user_roles')
     .select('role')
@@ -22,6 +26,7 @@ const fetchUserRolesFromSupabase = async () => {
     throw error;
   }
 
+  console.log('Roles fetched successfully:', data);
   return data?.map(item => item.role as UserRole) || [];
 };
 
@@ -39,6 +44,7 @@ export const useEnhancedRoleAccess = () => {
     retry: 1,
     meta: {
       onSuccess: (data: UserRole[]) => {
+        console.log('Role query succeeded, updating store:', data);
         setUserRoles(data);
         const primaryRole = data.includes('admin') 
           ? 'admin' 
@@ -55,7 +61,7 @@ export const useEnhancedRoleAccess = () => {
         setError(null);
       },
       onError: (error: Error) => {
-        console.error('Error fetching roles:', error);
+        console.error('Role query failed:', error);
         setError(error);
         setIsLoading(false);
         toast({

@@ -20,7 +20,8 @@ function AppContent() {
   const { isLoading: rolesLoading, error: rolesError } = useEnhancedRoleAccess();
   const { toast } = useToast();
 
-  // Show role loading errors
+  console.log('App render state:', { sessionLoading, rolesLoading, hasSession: !!session });
+
   if (rolesError) {
     console.error('Role loading error:', rolesError);
     toast({
@@ -30,9 +31,7 @@ function AppContent() {
     });
   }
 
-  // Only show loading state if either session or roles are loading
   if (sessionLoading || rolesLoading) {
-    console.log('Loading state:', { sessionLoading, rolesLoading });
     return (
       <div className="flex items-center justify-center min-h-screen bg-dashboard-dark">
         <Loader2 className="w-8 h-8 animate-spin text-dashboard-accent1" />
