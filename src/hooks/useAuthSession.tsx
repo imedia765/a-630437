@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Session, AuthError } from "@supabase/supabase-js";
+import { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,13 +12,13 @@ export function useAuthSession() {
   const queryClient = useQueryClient();
 
   const handleSignOut = async (skipStorageClear = false) => {
+    console.log('Starting sign out process...');
     if (isLoggingOut) {
       console.log('Logout already in progress, skipping...');
       return;
     }
 
     try {
-      console.log('Starting sign out process...');
       setIsLoggingOut(true);
       setLoading(true);
       
